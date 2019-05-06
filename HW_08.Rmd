@@ -1,0 +1,194 @@
+---
+title: "HW_08"
+author: "Judson Webb"
+date: "March 9, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache=FALSE, warning = FALSE)
+```
+
+# Problem 1: SQL Basics
+##1. List the sql tables for dcon.(Note: Use dbListTables. There is only one table and it is called mortality_data).
+##2. List the fields in the sql table mortality_data. (Note: Use dbListFields. It should be about 3 pageslong).
+##3. Create a dataframe called mydf by selecting detail_age, sex, and marital_status and ordering by detail_age. Use the head function to show the first few rows of mydf. (Note: You are using sql to select the field names).
+
+```{r, echo=TRUE, cache=FALSE, warning = FALSE}
+library(knitr)
+library(RSQLite)
+```
+
+```{r, echo=TRUE, cache=FALSE, warning = FALSE}
+dcon <- dbConnect(SQLite(), dbname = "mortalitydatasqlite.sqlite")
+dbListTables(dcon)
+dbListFields(dcon, "mortality_data") 
+res <- dbSendQuery(conn = dcon, "
+SELECT detail_age, sex, marital_status
+FROM mortality_data
+ORDER BY detail_age;
+")
+mydf <- dbFetch(res, -1)
+dbClearResult(res)
+head(mydf)
+```
+
+# Problem 2: Filtering
+##1. Use the sql database and the mortality_data sql table,
+###a. Select detail_age, sex, and education_2003_revision and filter where age is greater than 20 and orderby detail_age. Use head function to show first few rows. (Note: Use ‘20’ in the where clause).
+```{r, echo=TRUE, cache=FALSE, warning = FALSE}
+res <- dbSendQuery(conn = dcon, "
+SELECT detail_age, sex, education_2003_revision
+FROM mortality_data
+WHERE detail_age> '20'
+ORDER BY detail_age;
+")
+mydf <- dbFetch(res, -1)
+dbClearResult(res)
+head(mydf)
+```
+###b. Select detail_age, sex, and education_2003_revision and filter where sex is Male and order by sex. Use head function to show first few rows.
+
+
+```{r, echo=TRUE, cache=FALSE, warning = FALSE}
+res <- dbSendQuery(conn = dcon, "
+SELECT detail_age, sex, education_2003_revision
+FROM mortality_data
+WHERE sex = 'Male'
+ORDER BY sex;
+")
+mydf <- dbFetch(res, -1)
+dbClearResult(res)
+head(mydf)
+```
+###c. Select detail_age, sex, and education_2003_revision and filter where education_2003_revision is Unknown and order by education_2003_revision. Use head function to show first few rows.
+```{r, echo=TRUE, cache=FALSE, warning = FALSE}
+res <- dbSendQuery(conn = dcon, "
+SELECT detail_age, sex, education_2003_revision
+FROM mortality_data
+WHERE education_2003_revision = 'Unknown'
+ORDER BY education_2003_revision;
+")
+mydf <- dbFetch(res, -1)
+dbClearResult(res)
+head(mydf)
+```
+##2. 
+###a. Select race_new and month_of_death and filter where month_of_death is between ‘A’ and ‘J’. Order by race_new and month_of_death.
+```{r, echo=TRUE, cache=FALSE, warning = FALSE}
+res <- dbSendQuery(conn = dcon, "
+SELECT race_new, month_of_death
+FROM mortality_data
+WHERE month_of_death BETWEEN 'A' AND 'J'
+ORDER BY race_new,month_of_death;
+")
+mydf <- dbFetch(res, -1)
+dbClearResult(res)
+head(mydf)
+```
+###b. Select detail_age and day_of_week_of_death and filter where day_of_week_of_death is like ‘S%’. Order by detail age and day_of_week_of_death.
+```{r, echo=TRUE, cache=FALSE, warning = FALSE}
+res <- dbSendQuery(conn = dcon, "
+SELECT detail_age, day_of_week_of_death
+FROM mortality_data
+WHERE day_of_week_of_death LIKE 'S%'
+ORDER BY detail_age,day_of_week_of_death;
+")
+mydf <- dbFetch(res, -1)
+dbClearResult(res)
+head(mydf)
+```
+#Problem 3: Aggregate Functions
+##1.Use the sql database and the sql table mortality_data and count the number of observations for short_358.
+```{r, echo=TRUE, cache=FALSE, warning = FALSE}
+query <- paste0("
+SELECT short_358,count(*)
+FROM mortality_data;")
+res <- dbSendQuery(dcon, query)
+dbFetch(res, -1)
+dbClearResult(res)
+```
+##2.Use the sql database and the sql table mortality_data and count the number of observations for race_new and short 358. (Note: Group by race_new and short_358).
+```{r, echo=TRUE, cache=FALSE, warning = FALSE}
+query <- paste0("
+SELECT race_new,short_358,count(*)
+FROM mortality_data
+GROUP BY race_new,short_358;")
+res <- dbSendQuery(dcon, query)
+dbFetch(res, -1)
+dbClearResult(res)
+```
+##3. Use the sql database and the sql table mortality_data and count the number of observations for race_new,detail_age, and sex based on the conditions where detail_age is greater than 25, educationallevel (education_2003_revision) is a HS Grad, and the sex is Male. (Note: Use ‘25’ in the where clause).
+```{r, echo=TRUE, cache=FALSE, warning = FALSE}
+query <- paste0("
+SELECT race_new,detail_age,sex,count(*)
+FROM mortality_data
+WHERE detail_age > '25' AND education_2003_revision = 'HS Grad' AND sex = 'Male'
+GROUP BY race_new,detail_age,sex;")
+res <- dbSendQuery(dcon, query)
+head(dbFetch(res, -1))
+dbClearResult(res)
+```
+#Problem 4: Creating, Counting, Modifying, and Deleting records from a table 
+##1. Create a table agegt30, where detail_age will be greater than 30.
+###a. From agegt30, select race_new and sex, and count records from this table.
+###b. Assign race_new as Race and count(*) as qty (Note: Group by sex and race_new).
+###c. Order by sex and race.
+###d. (Note: Use ‘30’ in the where clause).
+```{r, echo=TRUE, cache=FALSE, warning = FALSE}
+query <- "
+CREATE TABLE agegt30 AS
+SELECT *
+FROM mortality_data
+WHERE detail_age > '30';"
+dbSendQuery(dcon, query)
+
+query <- paste0("
+SELECT sex,race_new as Race,count(*) as qty
+FROM agegt30
+GROUP BY sex,race_new
+ORDER BY race_new,sex;")
+res <- dbSendQuery(dcon, query)
+dbFetch(res, -1)
+dbClearResult(res)
+
+query <- "
+DROP TABLE agegt30"
+dbSendQuery(dcon, query)
+```
+##1. Create a table called agelt30, where detail_age is be less than 30.
+###a. Delete records from this table where sex is Male.
+###b. From agelt30, select race_new and sex, and count the records from this table.
+###c. Assign race_new as Race and count(*) as qty (Note: Group by sex and race_new).
+###d. (Note: Use ‘30’ in the where clause).
+```{r, echo=TRUE, cache=FALSE, warning = FALSE}
+query <- "
+CREATE TABLE agelt30 AS
+SELECT *
+FROM mortality_data
+WHERE detail_age < '30';"
+dbSendQuery(dcon, query)
+
+query <- "
+DELETE FROM agelt30
+WHERE sex = 'Male';"
+dbSendQuery(dcon, query)
+
+query <- paste0("
+SELECT sex,race_new as Race,count(*) as qty
+FROM agelt30
+GROUP BY sex,race_new;")
+res <- dbSendQuery(dcon, query)
+dbFetch(res, -1)
+dbClearResult(res)
+
+query <- "
+DROP TABLE agelt30"
+dbSendQuery(dcon, query)
+```
+
+
+```{r, echo=TRUE, cache=FALSE, warning = FALSE}
+dbDisconnect(dcon)
+```
+

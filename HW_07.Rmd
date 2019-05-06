@@ -1,0 +1,368 @@
+---
+title: "HW_7"
+author: "Judson Webb"
+date: "February 27, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache=FALSE, warning = FALSE)
+```
+
+# Problem 1:
+##Define the matrix A in R and perform the following operations:
+
+```{r, echo=TRUE}
+A  <-  matrix(c(1,25,81,169,4,36,100,196,9,49,121,225,16,64,144,256),nrow=4,ncol=4,byrow=TRUE)
+```
+##1. Compute the column means of A using the apply function.
+```{r, echo=TRUE}
+apply(A,2,mean)
+```
+##2. Raise each elememt of the matrix A to the power of 3.
+```{r, echo=TRUE}
+apply(A,c(1,2),FUN = "^",3)
+```
+##3. Take the square of A. This is matrix exponentiation defined as A^2 = AXA.
+```{r, echo=TRUE}
+A %*% A
+```
+##4.Take the square of A using eigen-decomposition.
+```{r, echo=TRUE}
+e <- eigen(A)
+V <- e$vectors
+D <- diag(e$values)
+V %*% (D%*%D) %*% solve(V)
+```
+##5. Compute the inner product of the third row of A and the third column of A. 
+```{r, echo=TRUE}
+A[3,]%*%A[,3]
+```
+##6. Compute the outer product of the column vector c with the fourth row of A.
+```{r, echo=TRUE}
+C <- matrix(c(1,1,1,1),nrow=4,ncol=1)
+C%*%A[4,]
+```
+
+##7. Extract the first and third columns of A. 
+```{r, echo=TRUE}
+A[,c(1,3)]
+```
+##8.Discrete difference operator is an useful tool to efficiently compute row-wise/column-wise differences of a matrix and it is widely used in speeding up certain machine learning algorithms. In this problem, we want to take row-wise difference of matrix A. This means we want to take elementwise difference between the first and second rows of A, elementwise difference between the second and third rows of A, etc. Since A in R 4X4, the resulting matrix containing row-wise differences will havedimension of3X4. Instead of using a for-loop to iterate over the rows of A and take differences between consecutive rows, we use the discrete difference operator to speed up the operation. For this problem, use sapply()to construct this matrix difference operator B. Then use B X A tocompute the row-wise difference. Be sure to print out the results.
+
+```{r, echo=TRUE}
+BMaker <- function(vec){
+  row=as.integer(substr((vec),1,1))
+  col=as.integer(substr((vec),2,2))
+help(as.integer)
+  if (col==row){
+    return(-1)
+  }
+  if ((col-1)==row){
+    return(1)
+  }
+  return(0)
+}
+rowcol <- c("11","12","13","14","21","22","23","24","31","32","33","34")
+B <- matrix(sapply(rowcol,BMaker),nrow=3,ncol=4,byrow="TRUE")
+B
+B%*%A
+```
+#Problem 2
+```{r, echo=TRUE}
+library(knitr)
+library(dplyr)
+library(tidyverse)
+library(forcats)
+library(gridExtra)
+library(RSQLite)
+library(icd)
+library(jsonlite)
+library(gtable)
+library(grid)
+library(latex2exp)
+library(gridBase)
+library(nnet)
+library(magrittr)
+library(ggplot2)
+cbPalette <-c("#999999", "#E69F00", "#56B4E9", "#009E73","#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+theme1 <-theme_bw()+
+  theme(axis.text =element_text(size = 8, colour = "#6b3447"),
+        axis.title =element_text(size = 10, colour = "#2f2f63"),
+        legend.title =element_text(size = 8, colour = "#2f2f63"),
+        legend.text =element_text(size = 8, colour = "#6b3447"),
+        title =element_text(size = 12, colour = "#2f2f63"),
+        axis.ticks =element_line(colour = "#6b3447"),
+        plot.caption =element_text(size = 8, colour = "#2f2f63"),
+        plot.subtitle =element_text(size = 10, colour = "#2f2f63"))
+```
+##1. Use ggplot to create a bar graph for the day of the week of death (day_of_week_of_death) with x=short_358 and the fill=short_358 being inside the geom_bar(). Make sure to use fct_relevel to reorder day_of_week_of_death starting with Sunday.
+###Label the x-axis Day of Week and the y-axis Number of Suicides. 
+###Label the main title Methods by Day of Week. 
+###Use facet_wrap for the day_of_week_of_death and set scales to be free in the y-axis with 4 columns.
+###Adjust the x-axis labels to 35 degrees and have a horizontal justification of 1 (Use theme and element_text).
+###Use scale_fill_manual with values=cbPalette and use guides(fill=FALSE).
+###Does there seem to be a significant difference in suicide methods based on the day of the week?
+```{r, echo=TRUE}
+mort <- read.csv("mortality_data.csv", header = TRUE)
+
+ggplot(data = mort) + 
+  geom_bar(aes(x = short_358, fill = short_358)) +
+  labs(title = "Methods by Day of Week",
+       x = "Day of Week",
+       y = "Number of Suicides") +
+  theme1 +
+  theme(axis.text.x = element_text(size = 8, colour = "#6b3447",angle = 35, hjust=1))+
+  scale_fill_manual(values=cbPalette)+
+  guides(fill = FALSE)+
+  facet_wrap(~fct_relevel(day_of_week_of_death, "Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"),
+              ncol=4)
+```
+##It appears as though day of the week does not contribute significantly to method of suicide. While actual amount of suicide varies by day (Mondays, for example, show an increase) there does not seem to be a change in method distribution shown in the graph.
+
+
+#Problem 3
+##1. For the mortality data, count the number of rows and columns. (Note: Use nrow, ncol, and %>%)
+```{r, echo=TRUE}
+mort%>%
+nrow() 
+mort%>%
+ncol()
+```
+##2. For the mortality data, create a table that shows the mean age by sex. (Note: detail_age and sex are the column names. Use %>% , knitr::kable(), group_by, and summarise_at). 
+#THE CODE HERE PRODUCES THE CORRECT OUTPUT BUT SOMETHING IS OFF WITH THE KNITTING TO PDF
+```{r, echo=TRUE}
+select(mort,sex,detail_age)%>%
+  group_by(sex)%>%
+  summarise_at(2, mean) %>%
+  knitr::kable()
+```
+
+##3. For the mortality data, create a table that groups by month_of_death and sex and shows the following for detail_age (Note: Use %>% , knitr::kable(), group_by, and summarise):
+```{r, echo=TRUE}
+select(mort,month_of_death,sex,detail_age)%>%
+  group_by(month_of_death,sex)%>%
+  summarise(mean=mean(detail_age) ,sd=sd(detail_age),trim_mean=mean(detail_age,trim=.10),
+            median = median(detail_age),first_quartile=quantile(detail_age)[2],
+            third_quartile=quantile(detail_age)[4],iqr=quantile(detail_age)[4]-quantile(detail_age)[2],
+            minimum = min(detail_age),maximum=max(detail_age))%>%
+  knitr::kable()
+```
+##4.For the mortality data, create a bar graph of the proportion of detail_age using dplyr, group_by, mutate, summarise.
+###i. Label the x-axis as Age, y-axis as Proportion, and the title as Proportion by Age.
+###ii. Limit the x-axis from 0 to 125.
+
+```{r, echo=TRUE}
+group_by(mort,detail_age)%>%
+ggplot() + 
+  geom_histogram(aes(x = detail_age,y=..density..),binwidth=1,color = "white") +
+  xlim(0,125)+
+  labs(title = "Proportion by Age",
+       x = "Age",
+       y = "Proportion") +
+  theme1 
+```
+#Problem 4
+##Use ggplot2 to create one complete plot with adjusted axis labels and title. Your plot should include:
+###Normal(0, 0.0025) in black
+###Exp(4) in blue
+###Beta(2,4) in red
+###Gamma(3,6) in green
+##Change your xlim to be from [0, 1] and your ylim to be from [0, 5].
+##Label your x-axis X Values and y-axis Density Curve
+##Title your plot Density Distribution Comparisons
+##Include a color legend indicating which distribution corresponds to each line.
+
+
+```{r, echo=TRUE}
+x <- seq(0,1, length.out = 1000) 
+normd <- dnorm(x,mean = 0,sd=.0025)
+expd  <-  dexp(x,rate=4)
+betad <- dbeta(x, 2, 4, ncp = 0)
+gammad <- dgamma(x,3,6)
+den_dat<- data.frame(Normal = normd, Exp = expd, Beta = betad,Gamma=gammad)
+ggplot(den_dat) + 
+  geom_density(aes(x=Normal,color="Normal"))+ 
+  geom_density(aes(x=Exp,color="Exp"))+ 
+  geom_density(aes(x=Beta,color="Beta"))+ 
+  geom_density(aes(x=Gamma,color="Gamma"))+
+  xlim(0,1)+
+  ylim(0,5)+
+  labs(title = "Density Distribution Comparisons",
+       x = "X Values",
+       y = "Density Curve") + 
+  theme(legend.position="right")+
+  scale_colour_manual(values = c("Normal"="black","Exp"="blue", "Beta"="red","Gamma"="green"))
+```
+
+#Problem 5:
+```{r, echo=TRUE}
+
+hyp.testing <-function(mu0, stdev, signif.level,sample.mean, n,show_crit, show_pvalue,show_alt, mu1, show_beta, show_power,two_sided) {
+  if(show_crit==TRUE&&show_pvalue==FALSE&&show_alt==FALSE&&show_beta==FALSE&&show_power==FALSE&&two_sided==FALSE){
+    x <- seq(0,10, length.out = 10000) 
+    y <- dnorm(x)
+    crit_reg <- qnorm(1-.05)*stdev+mu0
+    
+    sample_stat <- sample.mean
+    p_val  <-  1-pnorm(abs(sample_stat),mean=mu0,sd=stdev)
+    plot(x,dnorm(x,mean =mu0, sd =stdev),type="l", xlim=c(0,8),xlab="x",ylab="Density",main="H0: mu =  4 vs H1: mu > 4")
+    abline(v=mu0)
+    abline(h=0)
+    xshade <- c(crit_reg,seq(crit_reg,10, length.out = 1000),10 )
+    yshade <- c(0,dnorm(seq(crit_reg,10, length.out = 1000),mean=mu0,sd=stdev),0)
+    
+    polygon(xshade,yshade,col="red",density=c(10,20),lwd=2)
+    segments(sample_stat,0, x1 = sample_stat, y1 = dnorm(sample_stat,mean=4,sd=1),
+             col = "orange", lwd ="3")
+    legend("topleft", 
+      legend = c(paste("Critical region sup = ",round(crit_reg,3)), paste("Sample statistic = ",sample_stat),paste("P-Value = ",round(p_val,5)))
+  )
+  }
+  if(show_crit==TRUE&&show_pvalue==TRUE&&show_alt==FALSE&&show_beta==FALSE&&show_power==FALSE&&two_sided==FALSE){
+    x <- seq(0,10, length.out = 10000) 
+    y <- dnorm(x)
+    crit_reg <- qnorm(1-.05)*stdev+mu0
+    
+    sample_stat <- sample.mean
+    p_val  <-  1-pnorm(abs(sample_stat),mean=mu0,sd=stdev)
+    plot(x,dnorm(x,mean =mu0, sd =stdev),type="l", xlim=c(0,8),xlab="x",ylab="Density",main="H0: mu =  4 vs H1: mu > 4")
+    abline(v=mu0)
+    abline(h=0)
+    xshade <- c(crit_reg,seq(crit_reg,10, length.out = 1000),10 )
+    pxshade <- c(sample_stat,seq(sample_stat,10, length.out = 1000),10 )
+    yshade <- c(0,dnorm(seq(crit_reg,10, length.out = 1000),mean=mu0,sd=stdev),0)
+    pyshade <- c(0,dnorm(seq(sample_stat,10, length.out = 1000),mean=mu0,sd=stdev),0)
+    
+    polygon(xshade,yshade,col="red",density=c(10,20),lwd=2)
+    polygon(pxshade,pyshade,col="orange",density=c(10,20),lwd=2,angle=c(-45,-45))
+    segments(sample_stat,0, x1 = sample_stat, y1 = dnorm(sample_stat,mean=4,sd=1),
+             col = "orange", lwd ="3")
+    legend("topleft", 
+      legend = c(paste("Critical region sup = ",round(crit_reg,3)), paste("Sample statistic = ",sample_stat),paste("P-Value = ",round(p_val,5)))
+  )
+  }
+  if(show_crit==TRUE&&show_pvalue==TRUE&&show_alt==TRUE&&show_beta==TRUE&&show_power==FALSE&&two_sided==FALSE){
+    x <- seq(0,10, length.out = 10000) 
+    y <- dnorm(x)
+    crit_reg <- qnorm(1-.05)*stdev+mu0
+    
+    sample_stat <- sample.mean
+    p_val  <-  1-pnorm(abs(sample_stat),mean=mu0,sd=stdev)
+    plot(x,dnorm(x,mean =mu0, sd =stdev),type="l", xlim=c(0,8),lwd=2,xlab="x",ylab="Density",main="H0: mu =  4 vs H1: mu > 4")
+    abline(v=mu0)
+    abline(h=0)
+    abline(v=mu1)
+    xshade <- c(crit_reg,seq(crit_reg,10, length.out = 1000),10 )
+    pxshade <- c(sample_stat,seq(sample_stat,10, length.out = 1000),10 )
+    yshade <- c(0,dnorm(seq(crit_reg,10, length.out = 1000),mean=mu0,sd=stdev),0)
+    pyshade <- c(0,dnorm(seq(sample_stat,10, length.out = 1000),mean=mu0,sd=stdev),0)
+    
+    polygon(xshade,yshade,col="red",density=c(10,20),lwd=2)
+    polygon(pxshade,pyshade,col="orange",density=c(10,20),lwd=2,angle=c(-45,-45))
+    segments(sample_stat,0, x1 = sample_stat, y1 = dnorm(sample_stat,mean=4,sd=1),
+             col = "orange", lwd ="3")
+    legend("topleft", 
+      legend = c(paste("Critical region sup = ",round(crit_reg,3)), paste("Sample statistic = ",sample_stat),paste("P-Value = ",round(p_val,5)))
+  )
+    
+    bxshade <- c(0,seq(0,crit_reg, length.out = 1000),crit_reg )
+    byshade <- c(0,dnorm(seq(0,crit_reg, length.out = 1000),mean=mu1,sd=stdev),0)
+    polygon(bxshade,byshade,col="blue")
+    lines(x,dnorm(x,mean =mu1, sd =stdev),lwd=1)
+    lines(x,dnorm(x,mean =mu0, sd =stdev),lwd=2)
+    plot(x,1-pnorm(x,mu1,stdev),col="blue",xlab="mu1",ylab="Error Type II")
+    abline(v=mu1)
+  }
+  if(show_crit==TRUE&&show_pvalue==TRUE&&show_alt==TRUE&&show_beta==TRUE&&show_power==TRUE&&two_sided==FALSE){
+    x <- seq(0,10, length.out = 10000) 
+    y <- dnorm(x)
+    crit_reg <- qnorm(1-.05)*stdev+mu0
+    
+    sample_stat <- sample.mean
+    p_val  <-  1-pnorm(abs(sample_stat),mean=mu0,sd=stdev)
+    plot(x,dnorm(x,mean =mu0, sd =stdev),type="l", xlim=c(0,8),lwd=2,xlab="x",ylab="Density",main="H0: mu =  4 vs H1: mu > 4")
+    abline(v=mu0)
+    abline(h=0)
+    xshade <- c(crit_reg,seq(crit_reg,10, length.out = 1000),10 )
+    pxshade <- c(sample_stat,seq(sample_stat,10, length.out = 1000),10 )
+    yshade <- c(0,dnorm(seq(crit_reg,10, length.out = 1000),mean=mu0,sd=stdev),0)
+    pyshade <- c(0,dnorm(seq(sample_stat,10, length.out = 1000),mean=mu0,sd=stdev),0)
+    abline(v=mu1)
+    
+    segments(sample_stat,0, x1 = sample_stat, y1 = dnorm(sample_stat,mean=4,sd=1),
+             col = "orange", lwd ="3")
+    legend("topleft", 
+      legend = c(paste("Critical region sup = ",round(crit_reg,3)), paste("Sample statistic = ",sample_stat),paste("P-Value = ",round(p_val,5)))
+  )
+    
+    bxshade <- c(0,seq(0,crit_reg, length.out = 1000),crit_reg )
+    byshade <- c(0,dnorm(seq(0,crit_reg, length.out = 1000),mean=mu1,sd=stdev),0)
+    gxshade <- c(crit_reg,seq(crit_reg,10, length.out = 1000),10)
+    gyshade <- c(0,dnorm(seq(crit_reg,10, length.out = 1000),mean=mu1,sd=stdev),0)
+    polygon(bxshade,byshade,col="blue")
+    polygon(gxshade,gyshade,col="darkgreen")
+    polygon(xshade,yshade,col="red",density=c(10,20),lwd=2)
+    polygon(pxshade,pyshade,col="orange",density=c(10,20),lwd=2,angle=c(-45,-45))
+    lines(x,dnorm(x,mean =mu1, sd =stdev),lwd=1)
+    lines(x,dnorm(x,mean =mu0, sd =stdev),lwd=2)
+    plot(x,1-pnorm(x,mu1,stdev),col="blue",xlab="mu1",ylab="Error Type II",xlim=c(0,8))
+    lines(x,pnorm(x,mu1,stdev),col="darkgreen",lwd=2)
+    abline(v=mu1)
+  }
+  if(show_crit==TRUE&&show_pvalue==TRUE&&show_alt==TRUE&&show_beta==TRUE&&show_power==TRUE&&two_sided==TRUE){
+    x <- seq(0,10, length.out = 10000) 
+    y <- dnorm(x)
+    crit_reg <- qnorm(1-.025)*stdev+mu0
+    
+    sample_stat <- sample.mean
+    p_val  <-  2*(1-pnorm(abs(sample_stat),mean=mu0,sd=stdev))
+    plot(x,dnorm(x,mean =mu0, sd =stdev),type="l", xlim=c(0,8),lwd=2,xlab="x",ylab="Density",main="H0: mu =  4 vs H1: mu > 4")
+    abline(v=mu0)
+    abline(h=0)
+    xshade <- c(crit_reg,seq(crit_reg,10, length.out = 1000),10 )
+    pxshade <- c(sample_stat,seq(sample_stat,10, length.out = 1000),10 )
+    yshade <- c(0,dnorm(seq(crit_reg,10, length.out = 1000),mean=mu0,sd=stdev),0)
+    pyshade <- c(0,dnorm(seq(sample_stat,10, length.out = 1000),mean=mu0,sd=stdev),0)
+    abline(v=mu1)
+    
+    segments(sample_stat,0, x1 = sample_stat, y1 = dnorm(sample_stat,mean=4,sd=1),
+             col = "orange", lwd ="3")
+
+    newcr <- mu0-(crit_reg-mu0)
+    newss <- mu0-(sample_stat-mu0)
+    bxshade <- c(0,seq(0,crit_reg, length.out = 1000),crit_reg )
+    byshade <- c(0,dnorm(seq(0,crit_reg, length.out = 1000),mean=mu1,sd=stdev),0)
+    gxshade <- c(crit_reg,seq(crit_reg,10, length.out = 1000),10)
+    gyshade <- c(0,dnorm(seq(crit_reg,10, length.out = 1000),mean=mu1,sd=stdev),0)
+    polygon(bxshade,byshade,col="blue")
+    polygon(gxshade,gyshade,col="darkgreen")
+    polygon(xshade,yshade,col="red",density=c(10,20),lwd=2)
+    polygon(pxshade,pyshade,col="orange",density=c(10,20),lwd=2,angle=c(-45,-45))
+    xshade2 <- c(0,seq(0,newcr, length.out = 1000),newcr )
+    pxshade2 <- c(0,seq(0,newss, length.out = 1000),newss)
+    yshade2 <- c(0,dnorm(seq(0,newcr, length.out = 1000),mean=mu0,sd=stdev),0)
+    pyshade2 <- c(0,dnorm(seq(0,newss, length.out = 1000),mean=mu0,sd=stdev),0)
+    polygon(xshade2,yshade2,col="red",density=c(10,20),lwd=2)
+    polygon(pxshade2,pyshade2,col="orange",density=c(10,20),lwd=2,angle=c(-45,-45))
+    lines(x,dnorm(x,mean =mu1, sd =stdev),lwd=1)
+    lines(x,dnorm(x,mean =mu0, sd =stdev),lwd=2)
+    legend("topleft", 
+      legend = c(paste("Critical region sup = ",round(crit_reg,3)),paste("Critical region inf = ",round(newcr,3)), paste("Sample statistic = ",sample_stat),paste("P-Value = ",round(p_val,5))))
+    
+    
+    plot(x,1-pnorm(abs(x-4)+4,mu1,stdev),col="blue",xlab="mu1",ylab="Error Type II",xlim=c(0,8))
+    lines(x,pnorm(abs(x-4)+4,mu1,stdev),col="darkgreen",lwd=2)
+    abline(v=mu1)
+    
+
+  }
+
+}
+
+hyp.testing(4,1,.05,6.07,n,TRUE,FALSE,FALSE,6.2,FALSE,FALSE,FALSE)
+hyp.testing(4,1,.05,6.07,n,TRUE,TRUE,FALSE,6.2,FALSE,FALSE,FALSE)  
+hyp.testing(4,1,.05,6.07,n,TRUE,TRUE,TRUE,6.2,TRUE,FALSE,FALSE)
+hyp.testing(4,1,.05,6.07,n,TRUE,TRUE,TRUE,6.2,TRUE,TRUE,FALSE)
+hyp.testing(4,1,.05,6.07,n,TRUE,TRUE,TRUE,6.2,TRUE,TRUE,TRUE)
+```

@@ -1,0 +1,254 @@
+---
+title: "HW 1 by Judson Webb"
+output:
+  pdf_document: default
+---
+
+#### Instructions
+* Produce your assignment as a RMarkdown document
+  rendered to pdf (knit to pdf) when possible. If you are having problems with this, for now we will accept the following: knit to html, click "Open in browser" in the popup window, and have your browser export it (or "print it") to pdf. Just be aware that this is a temporary allowance. You should address this ASAP.
+* Also submit your Rmd file (it will not be graded but we want it for
+  reference purposes).
+* Show all the code (use `echo=TRUE` as option in R chunks) as
+well as the results.
+* 10 points per exercise.
+* For this HW only, we are providing a template for you to use. In the following HW you will have to produce yours.
+* See Syllabus for HW policies.
+
+#### Data for exercises:
+```{r}
+data <- c(23, 89,  1, 34,
+          26, 85, 24, 43,
+          23, 93, 29, 45,
+          32, 42, 43, NA,
+          21, 54, 37, 76)
+```
+
+
+### Positive Integral Quantities Index Vector
+* Values in the index vector must lie in the set 
+{1, 2, ..., length(x)}.
+* Values not in this set will produce NAs.
+* Corresponding elements of the vector are selected and
+  concatenated, in that order, in the result.
+* The index vector can be of any length and the result
+is of the same length as the index vector.
+
+```{r, echo=TRUE}
+## Your solution here...
+index_vector <- (1:length(data))
+
+```
+
+#### Exercise 1:
+Extract the elements of `data` found in positions
+8, 3, 7, and 5.
+
+
+```{r, echo=TRUE}
+extract_p_eight <- data[8]
+extract_p_three <- data[3]
+extract_p_seven <- data[7]
+extract_p_five <- data[5]
+
+extract_p_eight 
+extract_p_three 
+extract_p_seven
+extract_p_five 
+
+```
+
+#### Exercise 2:
+Random sample and simple random sample:
+
+First search on the Internet which is the difference
+between:
+
+* simple random sample
+* random sample
+(keep in mind that sometimes people confuse both namings)
+
+(Note: the difference should be related to sampling with or without replacement).
+
+Generate both a simple random sample and a random sample
+of size 10 from `data`.
+
+Hint: look for the help of function `sample`.
+Extracting directly from `data`, a simple random sample is:
+```{r}
+sample(data, 10)
+```
+
+However, for didactical purposes on index vectors,
+I ask you to first generate
+a random index vector, and use it to extract the
+chosen elements from `data`.
+
+
+```{r, echo=TRUE}
+srs_index <- sample((1:length(data)),10,replace = FALSE)
+
+rs_index <- sample((1:length(data)),10,replace = TRUE)
+
+data[srs_index]
+data[rs_index]
+
+```
+
+#### Exercise 3:
+Systematic sample:
+Get a systematic sample of size `n = 5` from `data`
+by extracting each value that lies every `K = N/n` elements
+(where `N` is the total number of elements in `data`).
+
+Your first element needs to be randomly determined
+as a number between 1 and K.
+
+Note: Your result needs to be a vector containing
+the 5 elements that are part of your systematic sample.
+
+```{r, echo=TRUE}
+n <- 5
+N <- length(data)
+K <- N/n
+
+start_index <- sample((1:K),1)
+##Randomly generates the start index
+
+index_elements <- seq(from = start_index, to = length(data), by = K)
+
+data[index_elements]
+```
+
+### Negative Integral Quantities Index Vector
+* Note: remember that negative values in the index vector specify the values to be excluded.
+
+
+#### Exercise 4:
+Using negative indexes, obtain a sub-vector by removing
+from `data` elements in positions 3, 7, and at the end
+(the position at the end must be removed in a general way,
+even for vectors with different sizes).
+
+
+```{r, echo=TRUE}
+negative_index <- -c(3,7,length(data))
+data[negative_index]
+```
+
+#### Exercise 5:
+`data` has an even number of elements. Devise a general
+strategy to remove only the 2 elements found in the middle.
+
+
+```{r, echo=TRUE}
+even_removal_index <- -c(length(data)/2,(length(data)/2)+1)
+data[even_removal_index]
+```
+
+#### Exercise 6:
+Obtain a vector of the differences
+(second - first, third - second, ...)
+using negative indexes.
+
+Note: function `diff` does exactly this. you
+can use it to verify that the result of your
+solution (has to be a *one liner*) is OK:
+```{r}
+diff(data)
+```
+
+
+```{r, echo=TRUE}
+data[2:length(data)]-data[1:length(data)-1]
+```
+
+### Logical Index Vectors
+* Index vector must be of the *same length* as the vector
+  from which elements are to be selected.
+* If the length of the index vector is less than the vector,
+  the index vector will be recicled with perhaps unwanted
+  results.
+* Values corresponding to TRUE in the index vector are
+  selected.
+* Values corresponding to FALSE are omitted.
+
+```{r, echo=TRUE}
+```
+
+#### Exercise 7:
+Write an R expression that will return the sum value
+of 820 for the elements of `data`.
+
+Note: using function `sum` directly yields
+```{r}
+sum(data)
+```
+as `NA`s are contagious. `sum` has the parameter
+`na.rm` to remove `NA`s before performing the sum.
+```{r}
+sum(data, na.rm = TRUE)
+```
+
+Your solution cannot use `na.rm`, but instead
+use logical indexes, and be general
+(not only for this specific example).
+
+
+```{r, echo=TRUE}
+na_vector <- !(is.na(data))
+##Produces a logic vector which holds a value of TRUE
+##for each index that does not correspond to NA
+
+sum(data[na_vector])
+```
+
+#### Exercise 8:
+
+Write an R expression that will return the positions
+of values 23 and 43 in `data`.
+
+
+```{r, echo=TRUE}
+
+tt_truth_vector <- data==23
+ft_truth_vector <- data==43
+
+which(tt_truth_vector, arr.ind = TRUE)
+which(ft_truth_vector, arr.ind = TRUE)
+##Produces answer based on truth vectors
+
+```
+
+#### Exercise 9:
+Verify the "Empirical rule", that states that when data
+is drawn from a Normal distribution,
+
+* about 68% of the data is in the interval
+  `(mean(x) - sd(x), mean(x) + sd(x))`
+* about 95% of the data is in the interval
+  `(mean(x) - 2 * sd(x), mean(x) + 2 * sd(x))`
+* about 99.7% of the data is in the interval
+  `(mean(x) - 3 * sd(x), mean(x) + 3 * sd(x))`
+
+Hint: use "x <- rnorm(n)" to randomly generate
+      a sample of size n from a standard
+      normal distribution.
+        
+Use n = 1000
+
+```{r, echo=TRUE}
+
+
+sample_nine <- rnorm(1000)
+
+check_one <- (sample_nine>= mean(sample_nine) - sd(sample_nine)) & (sample_nine <= mean(sample_nine) + sd(sample_nine))
+
+check_two <- (sample_nine>= mean(sample_nine) - 2 * sd(sample_nine)) & (sample_nine <= mean(sample_nine) + 2 * sd(sample_nine))
+
+check_three <- (sample_nine>= mean(sample_nine) - 3 * sd(sample_nine)) & (sample_nine <= mean(sample_nine) + 3 * sd(sample_nine))
+
+sum(check_one)/1000
+sum(check_two)/1000
+sum(check_three)/1000
+```

@@ -1,0 +1,91 @@
+---
+title: "HW_06"
+author: "Judson Webb"
+date: "February 20, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(yrbss)
+```
+
+#Exercise 1:
+
+##Use select and filter to get a subset that shows the following columns and their conditions. Also, use the head function to show the first few rows. (Note: Columns names are in parathenses() and name of condition is in brackets[]):
+
+###1. Females [Female] (sex) who are greater than or equal to the age of 65 (detail_age) and the method ofsuicide (short_358) was by firearms [Firearm].
+
+###2.[Never married, single] (marital_status) males (sex), who are between the ages 20 and 25 inclusively(detail_age). (Note: If you desire, you can use between() for the condition of detail_age).
+
+###3. People who are less than or equal to 21 years old (detail_age) and committed suicide in January(month_of_death) and their educational level (education_2003_revision) is [HS Grad] or [Bachelor’s].(Note: If you desire, you can use %in% in the condition for educational level).2 [20]
+```{r, echo=TRUE}
+mort <- read.csv("mortality_data.csv", header = TRUE) 
+
+sub1 <-  select(mort, sex, detail_age, short_358)
+sub1 <-  filter(sub1, sex == "Female", detail_age >= 65, short_358 == "Firearm")
+head(sub1)
+
+sub2 <- select(mort , marital_status , sex , detail_age)
+sub2 <- filter(sub2,marital_status == "Never married, single", sex == "Male", detail_age>=20 & detail_age <= 25)
+head(sub2)
+
+sub3 <- select(mort, detail_age, month_of_death, education_2003_revision)
+sub3 <- filter(sub3,detail_age <= 21, month_of_death == "January", 
+    education_2003_revision == "HS Grad" | education_2003_revision == "Bachelor's")
+head(sub3)
+```
+
+#Exercise 2:
+
+##1. Select the columns sex, detail_age, and marital_status.
+
+##2.Use filter to get a subset that shows the following (Note that the columns names are in parathenses()):
+###a. Divorced (marital status)
+###b. 50 or above (detail_age)
+###c. Male (sex)
+##3.Using the columns from part 1, use arrange to sort by age (detail_age) and marital status (marital_status). Also, use the head function to show the first few rows.
+
+
+```{r, echo=TRUE}
+ex2sub <- select(mort, sex, detail_age, marital_status)
+ex2sub <- filter(ex2sub, sex == "Male", detail_age >= 50, marital_status == "Divorced")
+ex2sub <- arrange(ex2sub, detail_age, marital_status)
+head(ex2sub)
+```
+
+#Exercise 3:
+
+##Please note to use the head function to see the first few rows for the following below:
+###1. Select the columns that start with “s”.
+###2. Select the columns that end with “x”.
+###3. Select the columns that contain “age”.
+
+
+```{r, echo=TRUE}
+ex3sub <- select(mort, starts_with("s"))
+head(ex3sub)
+ex3sub <-  select(mort, ends_with("x"))
+head(ex3sub)
+ex3sub <-  select(mort, contains("age"))
+head(ex3sub)
+```
+
+#Exercise 4:
+
+##1. Select the detail_age column.
+
+##2.Use transmute to add two new columns (Agem5) and (Agep5), in which you subtract and add 5 years respectively. The order of the columns is Agem5, detail_age, and then Agep5. Use the head functionto see the first few rows.
+
+##3.Use the same conditions as part 1, but now use mutate to multiply the detail_age column by 5. Again,use the head function to see the first few rows. (Note: You are keeping the existing detail_age column,but you are changing the values in this column).
+
+```{r, echo=TRUE}
+ex4sub <-  select(mort, detail_age)
+ex4sub <- transmute(ex4sub, Agem5 = detail_age-5,detail_age,Agep5 = detail_age+5)
+head(ex4sub)
+
+ex4sub <-  select(mort, detail_age)
+ex4sub <- mutate(ex4sub, detail_age = detail_age*5)
+head(ex4sub)
+```

@@ -1,0 +1,145 @@
+---
+title: "HW_04"
+author: "Judson Webb"
+date: "February 1, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Exercise 1:
+
+##In class we have done the following:
+
+```{r, echo=TRUE}
+par(mar =c(2, 2, 2, 1),
+    mgp =c(1.1, 0.15, 0),
+    tck = -0.01)
+a <-rnorm(500)
+layout(mat = matrix(c(2, 2,
+                      1, 3), 2, byrow = TRUE),
+       widths =c(2, 1),
+       heights =c(3, 2))
+plot(a)
+hist(a)
+boxplot(a)
+```
+##Achieve the same result without using nor heights (Note: there is a slight difference on the results of both approaches. So they are almost but not exactly the same).
+```{r, echo=TRUE}
+par(mar =c(2, 2, 2, 1),
+    mgp =c(1.1, 0.15, 0),
+    tck = -0.01)
+a <-rnorm(500)
+layout(mat = matrix(c(2, 2, 2,
+                      2, 2, 2,
+                      1, 1, 3), 3, byrow = TRUE))
+plot(a)
+hist(a)
+boxplot(a)
+```
+
+#Exercise 2:
+
+##Create a plot that will illustrate how confidence intervals need to be interpreted (from a frequentist approach). For that end, draw 100 samples of size 10 each from a normal distribution with population mean = 10 and population variance = 4. Then plot each 95% confidence interval for the mean. Whenconstructing the intervals, you can assume the population variance is known and use the given variance(of course you cannot assume that the population mean is known). For plotting you can only useplot,abline, andsegments. Your plot should look similar to the example below where in green are the cases that captured the true mean while in red the ones that failed. Each case has the interval and the sample mean (the dot in the middle of the interval). Your code must be in a function to be called as shown below:
+
+```{r, echo=TRUE}
+
+CI_sigma_known <- function(n, conf.coeff, real.mu, real.var, B){
+  samples <- replicate(B,rnorm(n,real.mu,sqrt(real.var)))
+  intervals <- list()
+  means <- list()
+ 
+  for (each in (1:B)){
+    intervals[[each]] <- c(mean(samples[,each])-qnorm((1-conf.coeff)/2+conf.coeff)*sqrt(real.var)/sqrt(n),mean(samples[,each])+qnorm((1-conf.coeff)/2+conf.coeff)*sqrt(real.var)/sqrt(n))
+     means[each] <- mean(samples[,each])
+  }
+  percent <- paste(sum(data.frame(intervals)[1,] <= real.mu & data.frame(intervals)[2,] >= real.mu),"% CI's")
+  cases <- (1:B)
+  plot(means,cases, sub = "green: successful, red: unsuccessful",main = percent, ylab="cases",xlab = "True Mean (in blue) and CI's", asp = .03)
+  abline(v = real.mu, col = "blue", lty = 2,lwd = 4)
+  for (each in cases){
+    if (intervals[[each]][1] <= real.mu && intervals[[each]][2] >= real.mu){
+      segments(x0 = intervals[[each]][1],y0= each, x1= intervals[[each]][2], col = "green")
+    }
+    else{
+      segments(x0 = intervals[[each]][1],y0= each, x1= intervals[[each]][2], col = "red" )
+    }
+  }
+}
+
+CI_sigma_known(n = 10, ##sample size
+               conf.coeff = .95, ##confidence level
+               real.mu = 10, ##population mean
+               real.var = 4, ##population variance
+               B = 100 ##number of intervals
+               )
+```
+
+#Exercise 3:
+##Using ggplot2 and geom_line to create a plot similar to the one of the St. Louis Federal Reserve website.
+
+```{r, echo=TRUE}
+library(ggplot2)
+
+data1 <- read.csv("TXGOVTN.csv", header = TRUE)
+ggplot(data = data1) + aes(DATE, TXGOVTN)+ 
+    geom_line(group = 1,color = "blue",size = 1) + theme(legend.position = "none" ,panel.grid.major = element_blank(), axis.line = element_line(colour = "black")) +
+labs(x = "Month", y= "Thousands of Persons", title = "All Employees: Government in Texas, 1990-2018")
+```
+##5: The data indicates significant growth in government employment in Texas over time. However it also indicates a significant dip and then increase between May and September each year. Furthermore, growth in employment does not appear to slow during a recession, but can slow somewhat after. The total government employment in Texas has increased fairly consistantly over time. 
+
+#Exercise 4
+```{r, echo=TRUE}
+library(astsa)
+library(timeSeries)
+library(quantmod)
+library(ggplot2)
+
+year <- list()
+for (each in (1:130)){
+  year[[each]] <- list(each+1879,gtemp[each],gtemp2[each])
+}
+
+df <- data.frame(matrix(unlist(year), nrow=130, byrow=T))
+ggplot()+ 
+    geom_line(data=df,aes(x=X1, y=X2, group=1, col = "blue"),size = 1, show.legend = TRUE) +
+  geom_line(data=df,aes(x=X1, y=X3, group=1, col = "red"),size = 1, show.legend = TRUE) +
+  labs(x = "Time", y = "Temperature Deviations", title = "Temperature Deviations") + 
+       scale_colour_manual(labels = c("Land/Ocean", "Surface Air"), values = c("blue", "red"))
+
+
+```
+
+##4.What can be said about the temperature deviations between land/ocean and surface air. Is there a pattern to the data?
+
+##The temperature deviations for oceans/land and surface air are very closely related, although the data indicates that surface air generally deviates to a greater extent than oceans/land. The pattern appears to indicate an increase in global temperature deviations as time passes. Specifically, the growth of postive temperature deviations seems to be increasing rapidly.
+
+#Exercise 5:
+##In class we looked at the mpg dataset. Return to this data set and plot the data(x = displ, y = hwy)in ggplot2 three times to compare methods of dealing with overplotting.
+
+##1. Plot without altering opaqueness of points or jittering.
+```{r, echo=TRUE}
+data(mpg)
+mpg <- as.data.frame(mpg)
+qplot(x = displ, y = hwy, data = mpg)
+```
+
+##2. Plot and alter the opaqueness of the points.
+```{r, echo=TRUE}
+data(mpg)
+mpg <- as.data.frame(mpg)
+qplot(x = displ, y = hwy, data = mpg, alpha = I(1/10))
+```
+
+##3. Plot with jittering.
+```{r, echo=TRUE}
+data(mpg)
+mpg <- as.data.frame(mpg)
+qplot(x = displ, y = hwy, data = mpg, geom = "jitter")
+```
+
+##4. Compare the methods and explain which plot you believe to be optimal.
+
+## I believe that the jittering method is optimal. The first method is insufficient because it conceals data. An argument could be made for the opaqueness method, but it is difficult to interpret anything about the data beyond concentration points. I could be working with a data set of 100 points or 100000 points and I would be unable to tell. Jitter is most effective because it shows both concentration and gives some idea about how much data you're working with. However, an opproach combining the opaqueness and the jittering approaches could be even more effective.

@@ -1,0 +1,73 @@
+---
+title: "HW_09"
+author: "Judson Webb"
+date: "March 24, 2019"
+output: pdf_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache=FALSE, warning = FALSE)
+```
+
+# Problem 1: String Lengths
+##1. What are the minimum, maximum, mean, and median string lengths for the mortality data column called “sex”?
+
+```{r, echo=TRUE, cache=FALSE, warning = FALSE}
+library(knitr)
+library(stringr)
+mort <- read.csv("mortality_data.csv", header = TRUE)
+min(str_length(mort$sex))
+max(str_length(mort$sex))
+mean(str_length(mort$sex))
+median(str_length(mort$sex))
+```
+##2. What are the minimum, maximum, mean, and median string lengths for the mortality data columncalled “marital_status”?
+```{r, echo=TRUE, cache=FALSE, warning = FALSE}
+min(str_length(mort$marital_status))
+max(str_length(mort$marital_status))
+mean(str_length(mort$marital_status))
+median(str_length(mort$marital_status))
+```
+# Problem 2: Substrings and String Locations
+##1. Using the head function, 
+###a. Substring the mortality data column “sex” to show the first character only. (Note: Use str_sub). 
+###b. Locate the string “Male” in mortality data column “sex”column. (Note: Use str_locate).
+```{r, echo=TRUE, cache=FALSE, warning = FALSE}
+head(str_sub(mort$sex,1,1))
+head(str_locate(mort$sex,"Male"))
+```
+##2. Using the head function,
+###a. substring the mortality data column “marital_status” to show the first three characters. (Note:Use str_sub)
+###b. locate the string “Married” in mortality data column “marital_status”column. (Note: Use str_locate).
+```{r, echo=TRUE, cache=FALSE, warning = FALSE}
+head(str_sub(mort$marital_status,1,3))
+head(str_locate(mort$marital_status,"Married"))
+```
+# Problem 3: String Replace All
+##1. Using the head function and the first 100 rows,
+###a. Replace all the occurences for “Female” with “F” in the mortality data column “sex”.
+###b. Replace all the occurences for “Male” with “M” in the mortality data column “sex”.
+###c. Replace all the occurences for “Female” with “F” and “Male” with “M” respectively in the mortality data column “sex”.
+```{r, echo=TRUE, cache=FALSE, warning = FALSE}
+head(str_replace_all(mort$sex[1:100],"Female","F"))
+head(str_replace_all(mort$sex[1:100],"Male","M"))
+head(str_replace_all(mort$sex[1:100],c("Female" = "F","Male" = "M")))
+```
+##2. Using the head function and the first 100 rows,
+###a. Replace all the occurences for “Bachelor’s” with “Bachelors” in the mortality data column “education_2003_revision”.
+###b. Replace all the occurences for “Unknown” with “99” in the mortality data column “education_2003_revision”.
+```{r, echo=TRUE, cache=FALSE, warning = FALSE}
+head(str_replace_all(mort$education_2003_revision[1:100],"Bachelor's","Bachelors"))
+head(str_replace_all(mort$education_2003_revision[1:100],"Unknown","99"))
+```
+# Problem 4: Counting
+##1. Using sum and str_count, in the first 500 rows,
+###a. Count how many times “Male” appears in the mortality data column “sex”.
+###b. Count how many times “Female” appears in the mortality data column “sex”.
+###c. Count how many times “Bachelor’s” appears in the mortality data column “education_2003_revision”.
+###d. Count how many times “Master’s” appears in the mortality data column “education_2003_revision”.
+```{r, echo=TRUE, cache=FALSE, warning = FALSE}
+sum(str_count(mort$sex[1:500],"Male"))
+sum(str_count(mort$sex[1:500],"Female"))
+sum(str_count(mort$education_2003_revision[1:500],"Bachelor's"))
+sum(str_count(mort$education_2003_revision[1:500],"Master's"))
+```

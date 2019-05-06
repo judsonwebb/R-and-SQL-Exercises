@@ -1,0 +1,161 @@
+---
+title: "Hw_02"
+author: "Judson"
+date: "January 18, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+###Exercise 1
+
+```{r, echo=TRUE}
+##install.packages("ggplot2")
+## Load the library
+library(ggplot2)
+## Activate the mpg data.frame provided by ggplot2
+data(mpg)
+## New versions of ggplot provide a tibble and have all character variables, while
+## older were data frames and had factors. Transform manufacturer to factor
+## to show how most data.frames treat character variables.
+mpg <- as.data.frame(mpg)
+mpg$manufacturer <- factor(mpg$manufacturer)
+str(mpg)
+```
+
+
+```{r, echo=TRUE}
+summary(mpg)
+
+```
+
+```{r, echo=TRUE}
+not_faudi_index <- mpg[1]!="audi"&mpg[1]!="ford"
+new_mpg <- mpg[not_faudi_index,]
+summary(new_mpg)
+
+new_mpg<- droplevels(new_mpg, exclude=(anyNA(levels(new_mpg))))
+summary(new_mpg)
+##Manufacturers Ford and Audi have been dropped.
+##For number 5: Previous length was 234 and the sum of elements that contained ford or audi was 43.
+##              Current length is 191. 234-43=191
+
+```
+
+```{r, echo=TRUE}
+strict_index <- new_mpg[7]=="f" & new_mpg[11]=="midsize" & new_mpg[4]==2008 & (new_mpg[8]>=20 |new_mpg[9]>=20)
+strict_new_mpg <- new_mpg[strict_index,]
+strict_new_mpg <- droplevels(strict_new_mpg, exclude=(anyNA(levels(new_mpg))))
+summary(strict_new_mpg)
+##Question 7: Chevrolet: 1 car, Hyundai: 2 cars, Nissan: 2 cars, Toyota: 2 cars, Volkswagen: 1 car
+```
+
+```{r, echo=TRUE}
+##For refined data
+the_max <- 0
+for (each in (levels(strict_new_mpg[,1]))){
+  new_max <- sum(strict_new_mpg[1]==each)
+  if(new_max>the_max){
+    the_max <- new_max
+  }
+}
+the_max
+maxes <- c()
+for (each in (levels(strict_new_mpg[,1]))){
+  if(sum(strict_new_mpg[1]==each)==the_max){
+    maxes <- c(maxes,each)
+  }
+}
+maxes
+
+last_index <- strict_new_mpg[,1] %in% maxes
+last_mpg <- strict_new_mpg[last_index,]
+last_mpg <- droplevels(last_mpg, exclude=(anyNA(levels(strict_new_mpg))))
+summary(last_mpg)
+```
+
+```{r, echo=TRUE}
+##For original data
+the_max <- 0
+for (each in (levels(mpg[,1]))){
+  new_max <- sum(mpg[1]==each)
+  if(new_max>the_max){
+    the_max <- new_max
+  }
+}
+the_max
+maxes <- c()
+for (each in (levels(mpg[,1]))){
+  if(sum(mpg[1]==each)==the_max){
+    maxes <- c(maxes,each)
+  }
+}
+maxes
+```
+
+### Exercise 2
+```{r, echo=TRUE}
+set.seed(123)
+r <- rnorm(1000)
+p <- seq(0,1, length.out = 1000)
+plot(qnorm(p, mean= mean(r),sd=sd(r)),quantile(r,p))
+lines(qnorm(p, mean= mean(r),sd=sd(r)), qnorm(p, mean= mean(r),sd=sd(r)), type = "l")
+
+```
+
+###Exercise 3
+```{r, echo=TRUE}
+set.seed(123)
+r <- rgamma(1000, shape = 1)
+
+p <- seq(0,1, length.out = 1000)
+
+##Scale = expected value of r divided by shape
+plot(qgamma(p, shape = 1, scale = mean(r)),quantile(r,p))
+lines(qgamma(p, shape = 1, scale = mean(r)), qgamma(p, shape = 1, scale = mean(r)), type = "l")
+
+```
+
+###Exercise 4
+
+```{r, echo=TRUE}
+stem(faithful[,1])
+hist(faithful[,1])
+rug(faithful[,1])
+boxplot(faithful[,1])
+shapiro.test(faithful[,1])
+##Test indicates that data is not consistent with expectations for a normal distribution
+```
+
+###Exercise 5
+```{r, echo=TRUE}
+library(UsingR)
+data(father.son)
+## Perform a linear model analysis (regression)
+lmfs <- lm(sheight ~ fheight, data = father.son)
+slmfs <- summary(lmfs)
+anlmfs <- anova(lmfs)
+
+
+plot(father.son$fheight, father.son$sheight)
+abline(lmfs, col="RED")
+
+plot(father.son$fheight,residuals(lmfs))
+abline(0,0)
+
+## extract the fstatistic from slmfs
+## and perform the calculation to obtain
+## the p-value of the anova of the regression
+## i.e., the line that says
+## F-statistic: 361.2 on 1 and 1076 DF,  p-value: < 2.2e-16
+## Hint: use the function "pf" that gives you the
+##       cumulative probability of an F distribution.
+
+fstat <- (slmfs$fstatistic)
+2*pf(fstat[1],fstat[2],fstat[3],lower.tail=FALSE)
+
+str(anlmfs)
+2*anlmfs[["Pr(>F)"]][1]
+```

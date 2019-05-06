@@ -1,0 +1,213 @@
+---
+title: "HW_03"
+author: "Judson"
+date: "January 24, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Exercise 1
+##Using paste (or paste0), create the following Latex formula:  c_{1}X_{1}^0 + c_{2}X_{2}^1 +c_{3}X_{3}^2 + c_{4}X_{4}^3 + c_{5}X_{5}^4 + c_{6}X_{6}^5 + c_{7}X_{7}^6 + c_{8}X_{8}^7+ c_{9}X_{9}^8 + c_{10}X_{10}^9
+
+```{r, echo=TRUE}
+x <- 1:10
+paste0("c_{",x,"}X_{",x,"}^",(x-1),collapse = " + ")
+```
+#Exercise 2
+
+##In a tank containing 10 fishes, there are three yellow and seven black fishes. We select three fishes at random.
+
+##What is the probability that exactly one yellow fish gets selected? Using classical approach,the exact solution is:(31)(72)(103)=2140= 0.525 Solve the problem using three (numerical) techniques:
+
+##1.using a for loop with an if() clause and accumulator
+
+```{r, echo=TRUE}
+n <- 1000000
+tote_sum <- 0
+sample_space <-c(rep("Y",3),rep("B",7))
+for (each in (1:n)){
+  sampling <- sample(sample_space,3,replace=FALSE)
+  if(sum(sampling=="Y")==1){
+    tote_sum <- tote_sum+1
+  }
+}
+solution=tote_sum/n
+solution
+```
+##2. using a for loop with an ifelse() function and accumulator
+```{r, echo=TRUE}
+n <- 1000000
+tote_sum <- 0
+sample_space <-c(rep("Y",3),rep("B",7))
+for(each in (1:n)){
+  sampling <- sample(sample_space,3,replace=FALSE)
+  tote_sum <- tote_sum+ifelse(sum(sampling=="Y")==1,1,0)
+}
+solution <- tote_sum/n
+solution
+```
+##3 Vectorial approach using sapply (no loops, no if() or ifelse(), no accumulator)
+```{r, echo=TRUE}
+n <- 1000000
+sample_space <-c(rep("Y",3),rep("B",7))
+the_function <- function(x){
+  (sum(x=="Y")==1)
+}
+vec <- (replicate(n,list(sample(sample_space,3,replace =FALSE))))
+solution <- sum(sapply(vec,the_function))/n
+solution
+```
+#Note: in all cases time how long it takes to perform the calculations. You can use the following technique:
+```{r, echo=TRUE}
+##ptm <-proc.time()
+## Your code
+##proc.time()-ptm
+```
+##1
+```{r, echo=TRUE}
+ptm <-proc.time()
+n <- 1000000
+tote_sum <- 0
+sample_space <-c(rep("Y",3),rep("B",7))
+for (each in (1:n)){
+  sampling <- sample(sample_space,3,replace=FALSE)
+  if(sum(sampling=="Y")==1){
+    tote_sum <- tote_sum+1
+  }
+}
+solution=tote_sum/n
+solution
+proc.time()-ptm
+```
+##2
+```{r, echo=TRUE}
+ptm <-proc.time()
+n <- 1000000
+tote_sum <- 0
+sample_space <-c(rep("Y",3),rep("B",7))
+for(each in (1:n)){
+  sampling <- sample(sample_space,3,replace=FALSE)
+  tote_sum <- tote_sum+ifelse(sum(sampling=="Y")==1,1,0)
+}
+solution <- tote_sum/n
+solution
+proc.time()-ptm
+```
+##3
+```{r, echo=TRUE}
+ptm <-proc.time()
+n <- 1000000
+sample_space <-c(rep("Y",3),rep("B",7))
+the_function <- function(x){
+  (sum(x=="Y")==1)
+}
+vec <- (replicate(n,list(sample(sample_space,3,replace =FALSE))))
+solution <- sum(sapply(vec,the_function))/n
+solution
+proc.time()-ptm
+```
+
+##After running the calculation time function for all three approaches several times, it looks as though the 1st approach is somewhat faster than the 2nd approach, which in turn is slightly faster than the third approach. 
+##I believe the 1st is likely fastest because the processing which occurs inside the loop is basic sampling and addition, while the 2nd has the ifelse function being called inside the loop and returning values, and the third involves the repeated calling of functions n times to generate and process the data. From this, I would claim that functions usually take longer for the system to process than math.
+
+#Exercise 3
+##Using only vectorial approach, determine:
+##1. What is the probability that at most one yellow fish gets selected?
+```{r, echo=TRUE}
+n <- 1000000
+sample_space <-c(rep("Y",3),rep("B",7))
+the_function <- function(x){
+  (sum(x=="Y")<2)
+}
+vec <- (replicate(n,list(sample(sample_space,3,replace =FALSE))))
+solution <- sum(sapply(vec,the_function))/n
+solution
+```
+##2. What is the probability that at least one yellow fish gets selected?
+```{r, echo=TRUE}
+n <- 1000000
+sample_space <-c(rep("Y",3),rep("B",7))
+the_function <- function(x){
+  (sum(x=="Y")>=1)
+}
+vec <- (replicate(n,list(sample(sample_space,3,replace =FALSE))))
+solution <- sum(sapply(vec,the_function))/n
+solution
+```
+
+#Exercise 4
+##Modifyopen.account()(the second version, not the first) in06-functions-closures.Rso it is able to:
+##1. Keep track of the name of the account's holder.
+##2. print the balance the first time it is called.
+##3. accept withdrawals.
+##4. perform a transfer between two accounts.
+
+```{r, echo=TRUE}
+new_open.account <- function(total,name) {
+  n.dep <- 1
+  n.wit <- 0
+  o_name <- name
+  owner_name <- function(){ ##Change 1
+    o_name
+  }
+  balance <- function() {
+    cat("Balance (",o_name,"):", total)
+    cat(". You made ", n.dep," deposits and ", n.wit,
+        " withdrawals.\n", sep = "")
+  }
+  deposit <- function(amount){
+    if(amount <= 0)
+      stop("Deposits must be positive!\n")
+    total <<- total + amount
+    n.dep <<- n.dep + 1
+    cat(amount, " deposited. ", sep = "")
+    balance()
+  }
+  withdraw <- function(amount) { ##Change 3
+    if(amount <= 0)
+      stop("Withdrawals must be positive!\n")
+    total <<- total - amount
+    n.wit <<- n.wit + 1
+    cat(amount, " withdrawn. ", sep = "")
+    balance()
+  }
+  
+  transfer <- function(amount,account){ ##Change 4
+    withdraw(amount)
+    account$deposit(amount)
+  }
+  
+  
+  balance()##Change 2
+  list(balance=balance,
+       deposit=deposit,
+       transfer=transfer,
+       withdraw=withdraw,
+       owner_name=owner_name)
+}
+
+
+##Checking output.
+
+lily <-new_open.account(200, "Lily")
+## Balance (Lily):200. You made 1 deposits and 0 withdrawals.
+ross <-new_open.account(100, "Ross")
+## Balance (Ross):100. You made 1 deposits and 0 withdrawals.
+lily$transfer(70, ross)
+## 70 withdrawn. Balance (Lily):130. You made 1 deposits and 1 withdrawals.
+## 70 deposited. Balance (Ross):170. You made 2 deposits and 0 withdrawals.
+ross$withdraw(50)
+## 50 withdrawn. Balance (Ross):120. You made 2 deposits and 1 withdrawals.
+lily$deposit(30)
+## 30 deposited. Balance (Lily):160. You made 2 deposits and 1 withdrawals.
+ross$transfer(100, lily)
+## 100 withdrawn. Balance (Ross):20. You made 2 deposits and 2 withdrawals.
+## 100 deposited. Balance (Lily):260. You made 3 deposits and 1 withdrawals.
+lily$balance()
+## Balance (Lily):260. You made 3 deposits and 1 withdrawals.
+ross$balance()
+## Balance (Ross):20. You made 2 deposits and 2 withdrawals.
+```
